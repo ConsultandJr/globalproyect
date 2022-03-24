@@ -1,0 +1,12 @@
+apiVersion: v1
+entries:
+  homebanking-helm:
+  - apiVersion: v1
+    created: "2022-03-24T12:19:13.588546407-03:00"
+    description: A Helm chart for homebanking
+    digest: 6cfb07d406e5b9558e91d5c66a963b31fa6e495e59658fef79d4c404704c7f9a
+    name: homebanking-helm
+    urls:
+    - homebanking-helm-0.1.0.tgz
+    version: 0.1.0
+generated: "2022-03-24T12:19:13.585775715-03:00"
