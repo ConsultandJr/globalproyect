@@ -1,5 +1,0 @@
-apiVersion: v1
-description: Pod - Apache Tomcat - Homebanking
-name: apache-tomcat
-version: 0.1.0
-
