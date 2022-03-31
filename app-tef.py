@@ -3,6 +3,9 @@ from flask import Response
 import mariadb
 import sys
 import json
+import oneagent
+import autodynatrace
+
 
 app = Flask(__name__)
 
@@ -29,10 +32,21 @@ def id_tef():
 
          cur = conn.cursor(buffered=True)
 
-         cur.execute("SELECT tef_id FROM tef order by tef_fecha asc")
+         sql1 = "SELECT tef_id FROM tef order by tef_fecha asc"
 
-         row_headers=[x[0] for x in cur.description]
-         rv = cur.fetchall()
+         sdk = oneagent.get_sdk()
+         dbinfo = sdk.create_database_info('homebankingdb', oneagent.sdk.DatabaseVendor.MARIADB,oneagent.sdk.Channel(oneagent.sdk.ChannelType.TCP_IP, 'mariadb-services:3306'))
+         with sdk.trace_sql_database_request(dbinfo, sql1) as tracer:
+           tracer.start()
+           cur.execute(sql1)
+           rv = cur.fetchall()
+           row_headers=[x[0] for x in cur.description]
+           tracer.end()
+           pass
+         oneagent.shutdown()
+
+         #row_headers=[x[0] for x in cur.description]
+         #rv = cur.fetchall()
          result_rows = cur.rowcount
          json_data=[]
          if result_rows > 0:
@@ -50,6 +64,7 @@ def id_tef():
 
       else:
          return '{}'.format("Error"),500
+
 @app.route("/save_data_tef",  methods = ['POST','GET'] )
 def save_data_tef():
 
@@ -82,16 +97,28 @@ def save_data_tef():
          #user_rut = "25654345-2"
 
          cur = conn.cursor(buffered=True)
-         sql = "insert into tef (tef_fecha,tef_valor,user_id,user_saldo,tef_cuenta_origen,te
+         sql1 = "insert into tef (tef_fecha,tef_valor,user_id,user_saldo,tef_cuenta_origen,tef_cuenta_destino,tef_comentario,user_mail) values(STR_TO_DATE('" + fecha + "','%d-%m-%Y %H:%i:%s')," + monto + "," + "'" +  user_rut + "'"+ "," + saldo + "," + cuenta_origen + "," + cuenta_destino + "," + "'" + comentario + "'" + "," + "'" +  email + "'" + ")"
 
-         cur.execute(sql)
+
+         sdk = oneagent.get_sdk()
+         dbinfo = sdk.create_database_info('homebankingdb', oneagent.sdk.DatabaseVendor.MARIADB,oneagent.sdk.Channel(oneagent.sdk.ChannelType.TCP_IP, 'mariadb-services:3306'))
+         with sdk.trace_sql_database_request(dbinfo, sql1) as tracer:
+           tracer.start()
+           cur.execute(sql1)
+           #rv = cur.fetchall()
+           tracer.end()
+           pass
+         oneagent.shutdown()
+         #cur.execute(sql)
          cur.close()
          conn.commit()
          conn.close()
 
-         return '{}{}'.format("sql inserto OK:",sql)
+         return '{}{}'.format("sql inserto OK:",sql1)
       else:
          return '{}'.format("Error"),500
+
+
 
 @app.route("/save_data_saldo_destino",  methods = ['POST','GET'] )
 def save_data_saldo_destino():
@@ -116,17 +143,24 @@ def save_data_saldo_destino():
          saldo = request.form['nuevo_monto']
 
          cur = conn.cursor(buffered=True)
-         sql = "UPDATE saldos SET sal_valor=" + saldo + "  WHERE sal_name='cuenta corriente'
+         sql1 = "UPDATE saldos SET sal_valor=" + saldo + "  WHERE sal_name='cuenta corriente' and user_id=" + "'" + user_rut + "'"
+         sdk = oneagent.get_sdk()
+         dbinfo = sdk.create_database_info('homebankingdb', oneagent.sdk.DatabaseVendor.MARIADB,oneagent.sdk.Channel(oneagent.sdk.ChannelType.TCP_IP, 'mariadb-services:3306'))
+         with sdk.trace_sql_database_request(dbinfo, sql1) as tracer:
+          tracer.start()
+          cur.execute(sql1)
+          cur.close()
+          conn.commit()
+          conn.close()
+          tracer.end()
+          pass
+         oneagent.shutdown()
+         #cur.execute(sql)
+         #conn.close()
 
-         cur.execute(sql)
-         cur.close()
-         conn.commit()
-         conn.close()
-
-         return '{}{}'.format("sql:",sql)
+         return '{}{}'.format("sql:",sql1)
       else:
          return '{}'.format("Error"),500
-
 @app.route("/save_data_saldo_origen",  methods = ['POST','GET'] )
 def save_data_saldo_origen():
 
@@ -150,16 +184,26 @@ def save_data_saldo_origen():
          saldo = request.form['nuevo_monto']
 
          cur = conn.cursor(buffered=True)
-         sql = "UPDATE saldos SET sal_valor=" + saldo + "  WHERE sal_name='cuenta corriente'
+         sql1 = "UPDATE saldos SET sal_valor=" + saldo + "  WHERE sal_name='cuenta corriente' and user_id=" + "'" + user_rut + "'"
 
-         cur.execute(sql)
-         cur.close()
-         conn.commit()
-         conn.close()
+         sdk = oneagent.get_sdk()
+         dbinfo = sdk.create_database_info('homebankingdb', oneagent.sdk.DatabaseVendor.MARIADB,oneagent.sdk.Channel(oneagent.sdk.ChannelType.TCP_IP, 'mariadb-services:3306'))
+         with sdk.trace_sql_database_request(dbinfo, sql1) as tracer:
+          tracer.start()
+          cur.execute(sql1)
+          cur.close()
+          conn.commit()
+          conn.close()
+          tracer.end()
+          pass
+         oneagent.shutdown()
 
-         return '{}{}'.format("sql:",sql)
+         #cur.execute(sql)
+         #cur.close()
+         #conn.commit()
+         #conn.close()
+
+         return '{}{}'.format("sql:",sql1)
       else:
          return '{}'.format("Error"),500
-
-
 
